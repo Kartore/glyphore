@@ -1,35 +1,62 @@
 # glyphore
 
 Glyph PBF (SDF) generator for [MapLibre GL](https://maplibre.org/)
-styles. Pure-Rust core with JS/WASM bindings (browser & Node) and a CLI.
+styles. A pure-Rust core powers the same JavaScript/WebAssembly API in
+browsers and Node.
 
 Unlike existing glyph tools (`build_pbf_glyphs`, node-fontnik), glyphore is
-built around four guarantees:
+focused on two things:
 
 1. **Pure Rust, no FreeType** — the same generator compiles to WebAssembly and
    runs in the browser.
 2. **Range-level library API** — generate a single 256-codepoint range on
    demand. Built for live style editors ([Kartore](https://github.com/Kartore)):
    drop a font file and use it immediately, no hosting round-trip.
-3. **Byte-deterministic output** — the same font always produces the same PBF
-   bytes on every platform. Editor previews match CI-hosted assets exactly.
-4. **CLI compatible with `build_pbf_glyphs` output layout** — drop-in
-   replacement for glyph build pipelines.
 
+## Install
 
-## Planned interfaces
-
+```sh
+pnpm add @kartore/glyphore
 ```
-glyphore build <fonts-dir> -o <out-dir>
-glyphore info <font-file>
-```
+
+## Browser
 
 ```ts
-import { init, parseFont, generateRange } from '@kartore/glyphore';
+import {
+	freeFont,
+	generateRange,
+	init,
+	parseFont,
+} from "@kartore/glyphore";
 
 await init();
 const { handle, info } = parseFont(fontBytes);
-const pbf = generateRange(handle, 0); // U+0000-U+00FF as glyph PBF
+try {
+	// U+0000–U+00FF. Range starts must be multiples of 256.
+	const pbf = generateRange(handle, 0);
+	console.log(info.fontstackName, pbf);
+} finally {
+	// Parsed fonts remain in WebAssembly memory until explicitly released.
+	freeFont(handle);
+}
+```
+
+Use `info.fontstackName` for MapLibre's `text-font` value and the glyph URL's
+`{fontstack}` placeholder. `info.coveredRanges` contains the sorted range
+starts that have at least one glyph.
+
+For Node, import the same API from `@kartore/glyphore/node`; its `init()` reads
+the bundled WebAssembly file from the package. See [the package README](js/README.md)
+for complete browser and Node examples.
+
+## Development
+
+```sh
+cargo fmt --check
+cargo clippy --workspace -- -D warnings
+cargo test --workspace
+pnpm -C js build
+pnpm -C js test
 ```
 
 ## License

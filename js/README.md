@@ -1,8 +1,13 @@
 # @kartore/glyphore
 
-Generation of MapLibre glyph SDF PBF ranges from
-TTF and OTF fonts. Browser and Node entry points use the same Rust core and
-produce the same bytes as the native pipeline.
+Generate MapLibre glyph SDF PBF ranges from TTF and OTF fonts. Browser and
+Node entry points use the same Rust core as the native pipeline.
+
+## Install
+
+```sh
+pnpm add @kartore/glyphore
+```
 
 ## Browser
 
@@ -66,9 +71,9 @@ wasm-bindgen CLI, Binaryen's `wasm-opt`, Node, and pnpm:
 ```sh
 rustup target add wasm32-unknown-unknown
 cargo install wasm-bindgen-cli --version 0.2.125 --locked
-pnpm -C npm/glyphore build
-pnpm -C npm/glyphore test
-pnpm -C npm/glyphore bench
+pnpm -C js build
+pnpm -C js test
+pnpm -C js bench
 ```
 
 Set `GLYPHORE_BENCH_FONT` to a CJK font path to include it in the benchmark.
