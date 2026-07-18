@@ -2,3 +2,5 @@
 # 決定論のためツールチェーンを固定する。上げるときは golden test のバイト一致を確認する
 channel = "1.93"
 targets = ["wasm32-unknown-unknown"]
+# CI ランナーの rustup は minimal プロファイルのため、fmt/clippy を明示する
+components = ["rustfmt", "clippy"]
