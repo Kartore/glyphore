@@ -1,6 +1,6 @@
 {
 	"name": "@kartore/glyphore",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Glyph PBF generator for MapLibre GL styles",
 	"type": "module",
 	"exports": {
