@@ -40,6 +40,12 @@ dependencies = [
 [[package]]
 name = "glyphore-core"
 version = "0.1.0-alpha.0"
+dependencies = [
+ "fontdue",
+ "sdf_glyph_renderer",
+ "thiserror",
+ "ttf-parser 0.25.1",
+]
 
 [[package]]
 name = "glyphore-wasm"

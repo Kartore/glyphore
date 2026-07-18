@@ -7,3 +7,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+fontdue = "0.9"
+sdf_glyph_renderer = { version = "1", default-features = false }
+thiserror = "2"
+ttf-parser = "0.25"
