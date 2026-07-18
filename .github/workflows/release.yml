@@ -12,32 +12,24 @@ jobs:
   publish-npm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Install Rust toolchain from rust-toolchain.toml
         run: rustup toolchain install
 
-      # crate 側の `wasm-bindgen = "=x.y.z"` と CLI のバージョン一致が必須
-      # (scripts/build.mjs が照合して不一致なら停止する)
       - name: Install wasm-bindgen-cli
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@07b4745e0c39a41822af610387492e3e53aa222b # v2.83.4
         with:
           tool: wasm-bindgen@0.2.125
 
-      # wasm-opt はバージョンで出力バイトが変わるため固定する (ローカル実測と同じ 131)
       - name: Install binaryen (wasm-opt)
         run: |
           curl -fsSL https://github.com/WebAssembly/binaryen/releases/download/version_131/binaryen-version_131-x86_64-linux.tar.gz | tar xz
           echo "$PWD/binaryen-version_131/bin" >> "$GITHUB_PATH"
 
-      # trusted publishing (OIDC) には pnpm >= 10.13 が必要
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/setup@5d160c5bc68a09337ad0d5654e237e03253b5879 # v1.0.0
         with:
-          version: 11
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
+          package-json-file: "js/package.json"
 
       - name: Verify tag matches package version
         working-directory: js
@@ -61,12 +53,10 @@ jobs:
         working-directory: js
         run: pnpm build
 
-      # golden バイト一致テストを含む (native と wasm の決定論の統合確認)
       - name: Test npm package
         working-directory: js
         run: pnpm test
 
-      # --no-git-checks: タグ checkout は detached HEAD のため
       - name: Publish to npm
         working-directory: js
         run: pnpm publish --access public --no-git-checks
