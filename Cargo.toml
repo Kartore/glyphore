@@ -4,7 +4,6 @@ members = [
 	"crates/glyphore-core",
 	"crates/glyphore-cli",
 	"crates/glyphore-wasm",
-	"spike",
 ]
 
 [workspace.package]
