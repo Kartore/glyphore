@@ -3,6 +3,9 @@
 	"version": "0.0.2",
 	"description": "Glyph PBF generator for MapLibre GL styles",
 	"type": "module",
+	"bin": {
+		"glyphore": "./cli.mjs"
+	},
 	"exports": {
 		".": {
 			"types": "./index.d.ts",
@@ -17,6 +20,7 @@
 	},
 	"types": "./index.d.ts",
 	"files": [
+		"cli.mjs",
 		"index.mjs",
 		"node.mjs",
 		"index.d.ts",

@@ -1,6 +1,6 @@
 [package]
 name = "glyphore-cli"
-description = "Deterministic MapLibre glyph PBF (SDF) generator — CLI"
+description = "MapLibre glyph PBF (SDF) generator — CLI"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,4 +11,5 @@ name = "glyphore"
 path = "src/main.rs"
 
 [dependencies]
+clap = { version = "4.6.0", features = ["derive"] }
 glyphore-core = { path = "../glyphore-core" }

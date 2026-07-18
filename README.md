@@ -19,6 +19,40 @@ focused on two things:
 pnpm add @kartore/glyphore
 ```
 
+## CLI
+
+Build every covered glyph range from the TTF and OTF files in a directory:
+
+```sh
+npx @kartore/glyphore build fonts/ -o glyphs/
+npx @kartore/glyphore info fonts/NotoSans-Regular.ttf
+```
+
+The output uses each font's internal fontstack name as its directory, including
+spaces: `glyphs/Noto Sans Regular/0-255.pbf`. Only ranges containing mapped
+glyphs are written; unlike `build_pbf_glyphs`, empty ranges are omitted.
+
+The native CLI offers the same commands and output layout:
+
+```sh
+cargo install glyphore-cli
+glyphore build fonts/ -o glyphs/
+```
+
+For GitHub Actions, the build can run with Node alone:
+
+```yaml
+steps:
+  - uses: actions/checkout@v4
+  - uses: actions/setup-node@v4
+    with:
+      node-version: 24
+  - run: npx @kartore/glyphore build fonts/ -o glyphs/
+```
+
+Generated PBF files contain data derived from the source font. Check the
+font's license before redistributing them.
+
 ## Browser
 
 ```ts

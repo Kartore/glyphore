@@ -9,6 +9,22 @@ Node entry points use the same Rust core as the native pipeline.
 pnpm add @kartore/glyphore
 ```
 
+## CLI
+
+```sh
+npx @kartore/glyphore build fonts/ -o glyphs/
+npx @kartore/glyphore info fonts/NotoSans-Regular.ttf
+npx @kartore/glyphore info fonts/NotoSans-Regular.ttf --json
+```
+
+`build` scans `.ttf` and `.otf` files and writes
+`<out>/<family style>/<start>-<end>.pbf`. Spaces in the fontstack directory
+name are preserved. Only ranges containing mapped glyphs are written;
+`build_pbf_glyphs` differs by also writing empty BMP ranges.
+
+Use `--skip-invalid` to report and skip fonts that cannot be parsed. Without
+it, an invalid font stops the build before any output is created.
+
 ## Browser
 
 ```js
