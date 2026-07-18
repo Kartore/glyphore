@@ -30,6 +30,11 @@ jobs:
       - uses: pnpm/setup@5d160c5bc68a09337ad0d5654e237e03253b5879 # v1.0.0
         with:
           package-json-file: "js/package.json"
+          install: false
+
+      - name: Install pnpm dependencies
+        working-directory: js
+        run: pnpm install
 
       - name: Verify tag matches package version
         working-directory: js
