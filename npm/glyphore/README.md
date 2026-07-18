@@ -1,0 +1,76 @@
+# @kartore/glyphore
+
+Deterministic WebAssembly generation of MapLibre glyph SDF PBF ranges from
+TTF and OTF fonts. Browser and Node entry points use the same Rust core and
+produce the same bytes as the native pipeline.
+
+## Browser
+
+```js
+import {
+	freeFont,
+	generateRange,
+	init,
+	parseFont,
+} from "@kartore/glyphore";
+
+await init();
+const { handle, info } = parseFont(fontBytes);
+try {
+	const pbf = generateRange(handle, 0);
+	console.log(info.fontstackName, pbf);
+} finally {
+	freeFont(handle);
+}
+```
+
+`info.fontstackName` is the value to use in MapLibre's `text-font` and in the
+glyph URL's `{fontstack}` placeholder. `info.coveredRanges` lists the range
+starts that contain glyphs.
+
+## Node
+
+```js
+import { readFile } from "node:fs/promises";
+import {
+	freeFont,
+	generateRange,
+	init,
+	parseFont,
+} from "@kartore/glyphore/node";
+
+await init();
+const bytes = await readFile("NotoSans-Regular.ttf");
+const { handle } = parseFont(bytes);
+try {
+	const pbf = generateRange(handle, 8192);
+} finally {
+	freeFont(handle);
+}
+```
+
+`parseFont` keeps the parsed font in WebAssembly memory. Always call
+`freeFont` when the handle is no longer needed; otherwise the font remains
+allocated until the WebAssembly instance is discarded. A second `freeFont`
+call for the same handle is harmless, while generating with a released handle
+throws an `Error`.
+
+Generated PBF files contain data derived from the source font. Check the
+font's license before redistributing them.
+
+## Development
+
+Install the repository's pinned Rust toolchain, the wasm target, the matching
+wasm-bindgen CLI, Binaryen's `wasm-opt`, Node, and pnpm:
+
+```sh
+rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli --version 0.2.125 --locked
+pnpm -C npm/glyphore build
+pnpm -C npm/glyphore test
+pnpm -C npm/glyphore bench
+```
+
+Set `GLYPHORE_BENCH_FONT` to a CJK font path to include it in the benchmark.
+The build stops if `wasm-bindgen` has a different version or `wasm-opt` is not
+available. The generated `pkg/` directory is intentionally not committed.

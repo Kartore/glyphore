@@ -11,3 +11,5 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 glyphore-core = { path = "../glyphore-core" }
+js-sys = "=0.3.102"
+wasm-bindgen = "=0.2.125"

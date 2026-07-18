@@ -1,8 +1,32 @@
 {
 	"name": "@kartore/glyphore",
 	"version": "0.1.0-alpha.0",
-	"private": true,
-	"description": "Deterministic MapLibre glyph PBF (SDF) generator (wasm). Placeholder until the wasm phase — see docs/plan.md.",
+	"description": "Deterministic WebAssembly glyph PBF generator for MapLibre GL styles",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./index.d.ts",
+			"import": "./index.mjs",
+			"default": "./index.mjs"
+		},
+		"./node": {
+			"types": "./index.d.ts",
+			"import": "./node.mjs",
+			"default": "./node.mjs"
+		}
+	},
+	"types": "./index.d.ts",
+	"files": [
+		"index.mjs",
+		"node.mjs",
+		"index.d.ts",
+		"pkg/"
+	],
+	"scripts": {
+		"build": "node scripts/build.mjs",
+		"test": "node --test test/",
+		"bench": "node test/bench.mjs"
+	},
 	"license": "MIT OR Apache-2.0",
 	"repository": {
 		"type": "git",
