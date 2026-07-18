@@ -11,7 +11,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const packageDirectory = fileURLToPath(new URL("..", import.meta.url));
-const repositoryRoot = resolve(packageDirectory, "../..");
+const repositoryRoot = resolve(packageDirectory, "..");
 const manifestPath = resolve(
 	repositoryRoot,
 	"crates/glyphore-wasm/Cargo.toml",

@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain from rust-toolchain.toml
+        run: rustup toolchain install
+
+      # crate 側の `wasm-bindgen = "=x.y.z"` と CLI のバージョン一致が必須
+      # (scripts/build.mjs が照合して不一致なら停止する)
+      - name: Install wasm-bindgen-cli
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen@0.2.125
+
+      # wasm-opt はバージョンで出力バイトが変わるため固定する (ローカル実測と同じ 131)
+      - name: Install binaryen (wasm-opt)
+        run: |
+          curl -fsSL https://github.com/WebAssembly/binaryen/releases/download/version_131/binaryen-version_131-x86_64-linux.tar.gz | tar xz
+          echo "$PWD/binaryen-version_131/bin" >> "$GITHUB_PATH"
+
+      # trusted publishing (OIDC) には pnpm >= 10.13 が必要
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Verify tag matches package version
+        working-directory: js
+        run: |
+          node -e '
+            const { version } = require("./package.json");
+            const tag = process.env.GITHUB_REF_NAME;
+            if (tag !== `v${version}`) {
+              console.error(`tag ${tag} does not match package version v${version}`);
+              process.exit(1);
+            }
+          '
+
+      - name: Rust gates
+        run: |
+          cargo fmt --check
+          cargo clippy --workspace -- -D warnings
+          cargo test --workspace
+
+      - name: Build wasm package
+        working-directory: js
+        run: pnpm build
+
+      # golden バイト一致テストを含む (native と wasm の決定論の統合確認)
+      - name: Test npm package
+        working-directory: js
+        run: pnpm test
+
+      # --no-git-checks: タグ checkout は detached HEAD のため
+      - name: Publish to npm
+        working-directory: js
+        run: pnpm publish --access public --no-git-checks

@@ -1,6 +1,6 @@
 # @kartore/glyphore
 
-Deterministic WebAssembly generation of MapLibre glyph SDF PBF ranges from
+Generation of MapLibre glyph SDF PBF ranges from
 TTF and OTF fonts. Browser and Node entry points use the same Rust core and
 produce the same bytes as the native pipeline.
 

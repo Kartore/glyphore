@@ -11,12 +11,12 @@ import {
 
 const fixtureFont = await readFile(
 	new URL(
-		"../../../crates/glyphore-core/tests/fixtures/NotoSans-Regular.ttf",
+		"../../crates/glyphore-core/tests/fixtures/NotoSans-Regular.ttf",
 		import.meta.url,
 	),
 );
 const goldenDirectory = new URL(
-	"../../../crates/glyphore-core/tests/golden/",
+	"../../crates/glyphore-core/tests/golden/",
 	import.meta.url,
 );
 const goldenRanges = [0, 256, 8192];

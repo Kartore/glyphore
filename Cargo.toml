@@ -13,6 +13,5 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/Kartore/glyphore"
 
 [profile.release]
-# 決定論とサイズのため最適化設定を固定する (docs/plan.md 参照)
 lto = true
 codegen-units = 1

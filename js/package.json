@@ -1,7 +1,7 @@
 {
 	"name": "@kartore/glyphore",
-	"version": "0.1.0-alpha.0",
-	"description": "Deterministic WebAssembly glyph PBF generator for MapLibre GL styles",
+	"version": "0.0.1",
+	"description": "Glyph PBF generator for MapLibre GL styles",
 	"type": "module",
 	"exports": {
 		".": {
@@ -31,6 +31,14 @@
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Kartore/glyphore.git",
-		"directory": "npm/glyphore"
+		"directory": "js"
+	},
+	"devDependencies": {},
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": "26.5.0",
+			"onFail": "download"
+		}
 	}
 }

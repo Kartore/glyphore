@@ -18,7 +18,7 @@ async function main() {
 	await init();
 
 	const fixturePath = new URL(
-		"../../../crates/glyphore-core/tests/fixtures/NotoSans-Regular.ttf",
+		"../../crates/glyphore-core/tests/fixtures/NotoSans-Regular.ttf",
 		import.meta.url,
 	);
 	const results = [await benchmarkFont("Noto Sans Regular", fixturePath)];

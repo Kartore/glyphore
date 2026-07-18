@@ -1,15 +1,5 @@
 # AGENTS.md — glyphore 開発エージェント向け規約
 
-## 必読
-
-作業前に必ず読むこと:
-
-1. [docs/plan.md](docs/plan.md) — 設計計画の正。**「実データ検証結果」と「ハマりどころ」は特に重要**
-   (docs/ はローカル管理でリポジトリには含まれない)
-2. 発注された Phase の作業指示書 (docs/phase*-*.md)
-
-姉妹プロジェクト [spritore](https://github.com/Kartore/spritore) と同じ流儀で開発する。
-
 ## このプロジェクトの絶対律: バイト決定論 + fontnik 互換
 
 - 同一入力 → 同一出力バイトを全プラットフォーム (native / wasm / Node) で保証する
@@ -30,7 +20,6 @@
 ## 触ってはいけないもの
 
 - `rust-toolchain.toml`、`Cargo.toml` の `[profile.release]`
-- `npm/glyphore/` は該当 Phase の作業指示書の範囲でのみ変更する
 - `.codex/` などエージェント環境の副産物をコミットしない
 
 ## 検証コマンド
