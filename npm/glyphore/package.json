@@ -1,0 +1,12 @@
+{
+	"name": "@kartore/glyphore",
+	"version": "0.1.0-alpha.0",
+	"private": true,
+	"description": "Deterministic MapLibre glyph PBF (SDF) generator (wasm). Placeholder until the wasm phase — see docs/plan.md.",
+	"license": "MIT OR Apache-2.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Kartore/glyphore.git",
+		"directory": "npm/glyphore"
+	}
+}

@@ -1,0 +1,13 @@
+[package]
+name = "glyphore-wasm"
+description = "Deterministic MapLibre glyph PBF (SDF) generation — wasm-bindgen bindings"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+glyphore-core = { path = "../glyphore-core" }

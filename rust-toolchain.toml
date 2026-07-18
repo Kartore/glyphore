@@ -1,0 +1,4 @@
+[toolchain]
+# 決定論のためツールチェーンを固定する。上げるときは golden test のバイト一致を確認する
+channel = "1.93"
+targets = ["wasm32-unknown-unknown"]

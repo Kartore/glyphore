@@ -1,0 +1,8 @@
+/target
+node_modules/
+npm/glyphore/pkg/
+/spike-out*
+/spike/reference/
+.codex/
+docs
+spike

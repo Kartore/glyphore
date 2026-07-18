@@ -1,0 +1,19 @@
+[workspace]
+resolver = "3"
+members = [
+	"crates/glyphore-core",
+	"crates/glyphore-cli",
+	"crates/glyphore-wasm",
+	"spike",
+]
+
+[workspace.package]
+version = "0.1.0-alpha.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Kartore/glyphore"
+
+[profile.release]
+# 決定論とサイズのため最適化設定を固定する (docs/plan.md 参照)
+lto = true
+codegen-units = 1
