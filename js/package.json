@@ -33,6 +33,7 @@
 		"url": "https://github.com/Kartore/glyphore.git",
 		"directory": "js"
 	},
+	"packageManager": "pnpm@11.13.1",
 	"devDependencies": {},
 	"devEngines": {
 		"runtime": {
