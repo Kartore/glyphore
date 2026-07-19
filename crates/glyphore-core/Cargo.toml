@@ -1,10 +1,17 @@
 [package]
 name = "glyphore-core"
-description = "Deterministic MapLibre glyph PBF (SDF) generation — core logic"
+description = "MapLibre glyph PBF (SDF) generation core library"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
+publish.workspace = true
+readme = "README.md"
+documentation = "https://docs.rs/glyphore-core"
+keywords = ["maplibre", "glyphs", "font", "pbf", "sdf"]
+categories = ["graphics", "encoding"]
 
 [dependencies]
 fontdue = "0.9"

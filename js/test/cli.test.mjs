@@ -142,7 +142,7 @@ function runNodeCli(arguments_) {
 function runRustCli(arguments_) {
 	return spawnSync(
 		"cargo",
-		["run", "--quiet", "--package", "glyphore-cli", "--", ...arguments_],
+		["run", "--quiet", "--package", "glyphore", "--", ...arguments_],
 		{
 			cwd: repositoryRoot,
 			encoding: "utf8",

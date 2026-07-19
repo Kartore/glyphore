@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Args, Parser, Subcommand};
-use glyphore_core::FontFace;
+use glyphore::{FontFace, generate_range};
 
 const USAGE: &str = concat!(
 	"Usage:\n",
@@ -247,7 +247,7 @@ fn write_fonts(directory: &Path, fonts: &[ParsedFont]) -> Result<(), CliFailure>
 			))
 		})?;
 		for start in &ranges {
-			let bytes = glyphore_core::generate_range(&font.face, *start).map_err(|error| {
+			let bytes = generate_range(&font.face, *start).map_err(|error| {
 				CliFailure::runtime(format!(
 					"failed to generate range {start} for `{}`: {error}",
 					font.file_name,

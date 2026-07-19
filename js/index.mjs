@@ -34,7 +34,7 @@ export function parseFont(bytes) {
 	return parseFontWasm(bytes);
 }
 
-/** Generates one deterministic MapLibre glyph PBF. */
+/** Generates one MapLibre glyph PBF. */
 export function generateRange(handle, start) {
 	assertInitialized();
 	return generateRangeWasm(handle, start);

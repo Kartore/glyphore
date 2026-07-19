@@ -4,18 +4,71 @@ on:
   push:
     tags: ['v*']
 
-permissions:
-  contents: read
-  id-token: write
+permissions: {}
 
 jobs:
-  publish-npm:
+  verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain from rust-toolchain.toml
-        run: rustup toolchain install
+        run: rustup show active-toolchain
+
+      - name: Verify tag matches package versions
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo_version="$(
+            cargo metadata --no-deps --format-version 1 \
+              | jq -r '.packages[] | select(.name == "glyphore") | .version'
+          )"
+          npm_version="$(node -p "require('./js/package.json').version")"
+
+          if [[ -z "${cargo_version}" || "${cargo_version}" == "null" ]]; then
+            echo "Could not read the glyphore Cargo package version" >&2
+            exit 1
+          fi
+
+          if [[ "${cargo_version}" != "${npm_version}" ]]; then
+            echo "Cargo version ${cargo_version} does not match npm version ${npm_version}" >&2
+            exit 1
+          fi
+
+          if [[ "${GITHUB_REF_NAME}" != "v${cargo_version}" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match v${cargo_version}" >&2
+            exit 1
+          fi
+
+          echo "version=${cargo_version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Rust gates
+        run: |
+          cargo fmt --check
+          cargo clippy --workspace -- -D warnings
+          cargo test --workspace
+
+  publish-npm:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: publish
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain from rust-toolchain.toml
+        run: rustup show active-toolchain
 
       - name: Install wasm-bindgen-cli
         uses: taiki-e/install-action@07b4745e0c39a41822af610387492e3e53aa222b # v2.83.4
@@ -36,24 +89,6 @@ jobs:
         working-directory: js
         run: pnpm install
 
-      - name: Verify tag matches package version
-        working-directory: js
-        run: |
-          node -e '
-            const { version } = require("./package.json");
-            const tag = process.env.GITHUB_REF_NAME;
-            if (tag !== `v${version}`) {
-              console.error(`tag ${tag} does not match package version v${version}`);
-              process.exit(1);
-            }
-          '
-
-      - name: Rust gates
-        run: |
-          cargo fmt --check
-          cargo clippy --workspace -- -D warnings
-          cargo test --workspace
-
       - name: Build wasm package
         working-directory: js
         run: pnpm build
@@ -64,4 +99,90 @@ jobs:
 
       - name: Publish to npm
         working-directory: js
-        run: pnpm publish --access public --no-git-checks
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        shell: bash
+        run: |
+          if pnpm view "@kartore/glyphore@${VERSION}" version >/dev/null 2>&1; then
+            echo "@kartore/glyphore ${VERSION} is already published"
+          else
+            pnpm publish --access public --no-git-checks
+          fi
+
+  publish-crates:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: publish
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain from rust-toolchain.toml
+        run: rustup show active-toolchain
+
+      - name: Check whether glyphore-core is published
+        id: core_status
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        shell: bash
+        run: |
+          if cargo info "glyphore-core@${VERSION}" --registry crates-io >/dev/null 2>&1; then
+            echo "published=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "published=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Authenticate glyphore-core publish
+        if: steps.core_status.outputs.published != 'true'
+        id: auth_core
+        uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
+
+      - name: Publish glyphore-core
+        if: steps.core_status.outputs.published != 'true'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth_core.outputs.token }}
+        run: cargo publish -p glyphore-core --locked
+
+      - name: Wait for glyphore-core to become available
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            if cargo info "glyphore-core@${VERSION}" --registry crates-io >/dev/null 2>&1; then
+              exit 0
+            fi
+
+            echo "Waiting for glyphore-core ${VERSION} (${attempt}/30)"
+            sleep 10
+          done
+
+          echo "glyphore-core ${VERSION} did not become available" >&2
+          exit 1
+
+      - name: Check whether glyphore is published
+        id: glyphore_status
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        shell: bash
+        run: |
+          if cargo info "glyphore@${VERSION}" --registry crates-io >/dev/null 2>&1; then
+            echo "published=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "published=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Authenticate glyphore publish
+        if: steps.glyphore_status.outputs.published != 'true'
+        id: auth_glyphore
+        uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
+
+      - name: Publish glyphore
+        if: steps.glyphore_status.outputs.published != 'true'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth_glyphore.outputs.token }}
+        run: cargo publish -p glyphore --locked

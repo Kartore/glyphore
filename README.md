@@ -15,8 +15,30 @@ focused on two things:
 
 ## Install
 
+### JavaScript
+
 ```sh
 pnpm add @kartore/glyphore
+```
+
+### Rust with Cargo
+
+Add the Rust API without the CLI dependency:
+
+```sh
+cargo add glyphore --no-default-features
+```
+
+Use the lower-level engine directly when building another integration layer:
+
+```sh
+cargo add glyphore-core
+```
+
+Install the native command-line interface with Cargo:
+
+```sh
+cargo install glyphore
 ```
 
 ## CLI
@@ -32,10 +54,10 @@ The output uses each font's internal fontstack name as its directory, including
 spaces: `glyphs/Noto Sans Regular/0-255.pbf`. Only ranges containing mapped
 glyphs are written; unlike `build_pbf_glyphs`, empty ranges are omitted.
 
-The native CLI offers the same commands and output layout:
+The native CLI installed through Cargo offers the same commands and output
+layout:
 
 ```sh
-cargo install glyphore-cli
 glyphore build fonts/ -o glyphs/
 ```
 
@@ -82,6 +104,24 @@ starts that have at least one glyph.
 For Node, import the same API from `@kartore/glyphore/node`; its `init()` reads
 the bundled WebAssembly file from the package. See [the package README](js/README.md)
 for complete browser and Node examples.
+
+## Rust
+
+```rust
+use glyphore::{FontFace, generate_range};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+	let bytes = std::fs::read("NotoSans-Regular.ttf")?;
+	let face = FontFace::parse(&bytes)?;
+	let pbf = generate_range(&face, 0)?;
+	std::fs::write("0-255.pbf", pbf)?;
+	Ok(())
+}
+```
+
+See the [`glyphore` crate README](crates/glyphore-cli/README.md) for feature
+selection and the low-level [`glyphore-core` README](crates/glyphore-core/README.md)
+for direct core usage.
 
 ## Development
 

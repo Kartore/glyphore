@@ -1,9 +1,8 @@
-//! glyphore core — deterministic MapLibre glyph PBF (SDF) generation.
+//! Core MapLibre glyph PBF (SDF) generation for glyphore.
 //!
 //! Pure logic only: no filesystem access, no clocks, no randomness, no
-//! wasm-bindgen. Everything here must be byte-deterministic and compatible
-//! with node-fontnik output conventions (24px, 3px buffer, radius 8,
-//! cutoff 0.25).
+//! wasm-bindgen. Output follows node-fontnik conventions (24px, 3px buffer,
+//! radius 8, cutoff 0.25).
 //!
 //! See `docs/plan.md` at the repository root for the design plan.
 
@@ -30,7 +29,7 @@ pub enum Error {
 	InvalidRangeStart(u32),
 }
 
-/// A parsed font prepared for deterministic glyph generation.
+/// A parsed font prepared for glyph generation.
 pub struct FontFace {
 	font: fontdue::Font,
 	family_name: String,

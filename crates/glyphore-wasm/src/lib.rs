@@ -35,7 +35,7 @@ pub fn parse_font(bytes: &[u8]) -> Result<JsValue, JsError> {
 	Ok(result.into())
 }
 
-/// Generates one deterministic MapLibre glyph PBF for a stored font.
+/// Generates one MapLibre glyph PBF for a stored font.
 #[wasm_bindgen(js_name = generateRange)]
 pub fn generate_range(handle: u32, start: u32) -> Result<Uint8Array, JsError> {
 	let bytes = FONTS.with(|fonts| {

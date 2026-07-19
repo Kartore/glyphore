@@ -1,10 +1,13 @@
 [package]
 name = "glyphore-wasm"
-description = "Deterministic MapLibre glyph PBF (SDF) generation — wasm-bindgen bindings"
+description = "MapLibre glyph PBF (SDF) generation — wasm-bindgen bindings"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
+publish = false
 
 [lib]
 crate-type = ["cdylib", "rlib"]

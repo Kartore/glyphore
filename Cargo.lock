@@ -163,8 +163,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "glyphore-cli"
-version = "0.1.0-alpha.0"
+name = "glyphore"
+version = "0.1.0"
 dependencies = [
  "clap",
  "glyphore-core",
@@ -172,7 +172,7 @@ dependencies = [
 
 [[package]]
 name = "glyphore-core"
-version = "0.1.0-alpha.0"
+version = "0.1.0"
 dependencies = [
  "fontdue",
  "sdf_glyph_renderer",
@@ -182,7 +182,7 @@ dependencies = [
 
 [[package]]
 name = "glyphore-wasm"
-version = "0.1.0-alpha.0"
+version = "0.1.0"
 dependencies = [
  "glyphore-core",
  "js-sys",
