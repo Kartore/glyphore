@@ -69,7 +69,7 @@ steps:
     with:
       node-version: 24
   # Pin glyphore so the generator cannot change when the latest tag advances.
-  - run: npx --yes @kartore/glyphore@0.1.1 build fonts/ -o glyphs/
+  - run: npx --yes @kartore/glyphore@0.2.0 build fonts/ -o glyphs/
 ```
 
 Generated PBF files contain data derived from the source font. Check the

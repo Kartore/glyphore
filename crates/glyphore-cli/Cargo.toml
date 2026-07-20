@@ -32,4 +32,4 @@ required-features = ["cli"]
 
 [dependencies]
 clap = { version = "4.6.0", features = ["derive"], optional = true }
-glyphore-core = { path = "../glyphore-core", version = "=0.1.1" }
+glyphore-core = { path = "../glyphore-core", version = "=0.2.0" }
