@@ -28,19 +28,39 @@ export function init(input) {
 	return initialization;
 }
 
-/** Parses and stores a font in WebAssembly memory. */
+/**
+ * Parses and stores a font in WebAssembly memory.
+ *
+ * @param {Uint8Array} bytes
+ * @returns {{handle: number, info: object}}
+ * @throws {Error} If the bytes are not a supported font.
+ */
 export function parseFont(bytes) {
 	assertInitialized();
 	return parseFontWasm(bytes);
 }
 
-/** Generates one MapLibre glyph PBF. */
+/**
+ * Generates one MapLibre glyph PBF for `start..=start + 255`.
+ *
+ * @param {number} handle
+ * @param {number} start A multiple of 256.
+ * @returns {Uint8Array}
+ * @throws {Error} If the start is invalid or the handle is unknown or released.
+ */
 export function generateRange(handle, start) {
 	assertInitialized();
 	return generateRangeWasm(handle, start);
 }
 
-/** Releases a font stored in WebAssembly memory. */
+/**
+ * Releases a font stored in WebAssembly memory.
+ *
+ * Releasing the same issued handle twice is a no-op.
+ *
+ * @param {number} handle
+ * @throws {Error} If the handle was never issued.
+ */
 export function freeFont(handle) {
 	assertInitialized();
 	return freeFontWasm(handle);

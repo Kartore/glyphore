@@ -20,6 +20,11 @@ glyphore info <font-file> [--json]
 `build` writes each font's covered 256-codepoint ranges below a directory named
 with its internal fontstack name. `--skip-invalid` reports and excludes fonts
 that cannot be parsed. `info --json` prints the extracted font metadata as JSON.
+Only ranges containing mapped glyphs are written.
+
+Use each generated directory with a single-entry `text-font` array. MapLibre
+joins multiple `text-font` entries with commas when expanding `{fontstack}`;
+glyphore does not generate those combined directories.
 
 ## Rust API
 
@@ -28,13 +33,6 @@ API without compiling the CLI dependency, disable default features:
 
 ```sh
 cargo add glyphore --no-default-features
-```
-
-Or add it to `Cargo.toml`:
-
-```toml
-[dependencies]
-glyphore = { version = "0.1.0", default-features = false }
 ```
 
 ```rust
@@ -48,6 +46,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 	Ok(())
 }
 ```
+
+See the [API documentation](https://docs.rs/glyphore) for the re-exported Rust
+types and functions.
 
 ## Features
 

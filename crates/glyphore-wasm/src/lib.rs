@@ -1,7 +1,8 @@
 //! wasm-bindgen bindings for glyphore-core.
 //!
-//! Thin wrapper only — all logic lives in `glyphore-core`. The js package in
-//! `js/glyphore` wraps the generated wasm with browser/Node entry points.
+//! Thin wrapper only — all logic lives in `glyphore-core`. The
+//! `@kartore/glyphore` package under `js/` wraps the generated wasm with browser
+//! and Node entry points.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
@@ -19,6 +20,11 @@ thread_local! {
 }
 
 /// Parses a font, stores it in WebAssembly memory, and returns its handle and metadata.
+///
+/// # Errors
+///
+/// Returns an error when the bytes are not a supported font or the JavaScript
+/// metadata object cannot be created.
 #[wasm_bindgen(js_name = parseFont)]
 pub fn parse_font(bytes: &[u8]) -> Result<JsValue, JsError> {
 	let face = FontFace::parse(bytes).map_err(core_error)?;
@@ -35,7 +41,14 @@ pub fn parse_font(bytes: &[u8]) -> Result<JsValue, JsError> {
 	Ok(result.into())
 }
 
-/// Generates one MapLibre glyph PBF for a stored font.
+/// Generates one MapLibre glyph PBF for a stored font and 256-codepoint range.
+///
+/// `start` must be a multiple of 256.
+///
+/// # Errors
+///
+/// Returns an error when `handle` is unknown or `start` is not a multiple of
+/// 256.
 #[wasm_bindgen(js_name = generateRange)]
 pub fn generate_range(handle: u32, start: u32) -> Result<Uint8Array, JsError> {
 	let bytes = FONTS.with(|fonts| {
@@ -47,6 +60,10 @@ pub fn generate_range(handle: u32, start: u32) -> Result<Uint8Array, JsError> {
 }
 
 /// Releases a stored font. Releasing the same issued handle again is a no-op.
+///
+/// # Errors
+///
+/// Returns an error when `handle` was never issued.
 #[wasm_bindgen(js_name = freeFont)]
 pub fn free_font(handle: u32) -> Result<(), JsError> {
 	let removed = FONTS.with(|fonts| fonts.borrow_mut().remove(&handle).is_some());

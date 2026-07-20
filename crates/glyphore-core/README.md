@@ -13,13 +13,6 @@ smallest dependency surface is preferred.
 cargo add glyphore-core
 ```
 
-Or add it to `Cargo.toml`:
-
-```toml
-[dependencies]
-glyphore-core = "0.1.0"
-```
-
 ## Usage
 
 ```rust
@@ -39,6 +32,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 The crate performs no filesystem access itself. Callers provide font bytes and
 decide where generated ranges are written.
+
+See the [API documentation](https://docs.rs/glyphore-core) for error behavior
+and details of the generated ranges.
 
 Generated PBF files contain data derived from the source font. Check the
 font's license before redistributing them.

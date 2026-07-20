@@ -1,17 +1,12 @@
 # glyphore
 
 Glyph PBF (SDF) generator for [MapLibre GL](https://maplibre.org/)
-styles. A pure-Rust core powers the same JavaScript/WebAssembly API in
-browsers and Node.
+styles. Build static glyph directories with the CLI, or generate individual
+256-codepoint ranges on demand from Rust, browsers, and Node.
 
-Unlike existing glyph tools (`build_pbf_glyphs`, node-fontnik), glyphore is
-focused on two things:
-
-1. **Pure Rust, no FreeType** — the same generator compiles to WebAssembly and
-   runs in the browser.
-2. **Range-level library API** — generate a single 256-codepoint range on
-   demand. Built for live style editors ([Kartore](https://github.com/Kartore)):
-   drop a font file and use it immediately, no hosting round-trip.
+The range API is designed for live style editors such as
+[Kartore](https://github.com/Kartore): drop a font file and make it available
+immediately, without a separate glyph build and hosting step.
 
 ## Install
 
@@ -54,6 +49,10 @@ The output uses each font's internal fontstack name as its directory, including
 spaces: `glyphs/Noto Sans Regular/0-255.pbf`. Only ranges containing mapped
 glyphs are written; unlike `build_pbf_glyphs`, empty ranges are omitted.
 
+These per-font directories are directly usable with a single-entry
+`text-font` array. MapLibre joins multiple `text-font` entries with commas when
+expanding `{fontstack}`; glyphore does not generate those combined directories.
+
 The native CLI installed through Cargo offers the same commands and output
 layout:
 
@@ -69,7 +68,8 @@ steps:
   - uses: actions/setup-node@v4
     with:
       node-version: 24
-  - run: npx @kartore/glyphore build fonts/ -o glyphs/
+  # Pin glyphore so the generator cannot change when the latest tag advances.
+  - run: npx --yes @kartore/glyphore@0.1.1 build fonts/ -o glyphs/
 ```
 
 Generated PBF files contain data derived from the source font. Check the
@@ -97,7 +97,8 @@ try {
 }
 ```
 
-Use `info.fontstackName` for MapLibre's `text-font` value and the glyph URL's
+Use `[info.fontstackName]` as a symbol layer's `text-font` array. With that
+single entry, MapLibre substitutes the same name for the glyph URL's
 `{fontstack}` placeholder. `info.coveredRanges` contains the sorted range
 starts that have at least one glyph.
 
@@ -119,9 +120,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-See the [`glyphore` crate README](crates/glyphore-cli/README.md) for feature
-selection and the low-level [`glyphore-core` README](crates/glyphore-core/README.md)
-for direct core usage.
+See the [`glyphore` API documentation](https://docs.rs/glyphore) for feature
+selection and the low-level
+[`glyphore-core` API documentation](https://docs.rs/glyphore-core) for direct
+core usage.
 
 ## Development
 

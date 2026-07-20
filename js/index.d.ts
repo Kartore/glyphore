@@ -5,7 +5,10 @@ export type FontHandle = number;
 export type FontInfo = {
 	familyName: string;
 	styleName: string;
-	/** The value for `text-font` and the glyph URL's `{fontstack}` placeholder. */
+	/**
+	 * The PBF font name. For a single-font MapLibre stack, use this as the only
+	 * entry in the layer's `text-font` array.
+	 */
 	fontstackName: string;
 	/** Sorted starts of 256-codepoint ranges containing at least one glyph. */
 	coveredRanges: number[];
@@ -13,7 +16,11 @@ export type FontInfo = {
 	glyphCount: number;
 };
 
-/** Initializes the bundled WebAssembly module exactly once. */
+/**
+ * Initializes the bundled WebAssembly module exactly once.
+ *
+ * Call and await this before using any font function.
+ */
 export function init(
 	input?: BufferSource | Promise<Response> | Response,
 ): Promise<void>;
@@ -23,19 +30,26 @@ export function init(
  *
  * The returned handle must eventually be passed to `freeFont` or the font's
  * memory remains allocated for the lifetime of the WebAssembly instance.
+ * Throws an `Error` when `bytes` is not a supported font.
  */
 export function parseFont(bytes: Uint8Array): {
 	handle: FontHandle;
 	info: FontInfo;
 };
 
-/** Generates the glyph PBF for `start..=start + 255`. */
+/**
+ * Generates the glyph PBF for `start..=start + 255`.
+ *
+ * `start` must be a multiple of 256. Throws an `Error` for an invalid start or
+ * an unknown or released handle.
+ */
 export function generateRange(
 	handle: FontHandle,
 	start: number,
 ): Uint8Array;
 
 /**
- * Releases a stored font. Calling this twice for the same issued handle is a no-op.
+ * Releases a stored font. Calling this twice for the same issued handle is a
+ * no-op. Throws an `Error` when the handle was never issued.
  */
 export function freeFont(handle: FontHandle): void;

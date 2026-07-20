@@ -4,7 +4,26 @@
 //! wasm-bindgen. Output follows node-fontnik conventions (24px, 3px buffer,
 //! radius 8, cutoff 0.25).
 //!
-//! See `docs/plan.md` at the repository root for the design plan.
+//! Parse font bytes once with [`FontFace::parse`], inspect the sorted range
+//! starts with [`FontFace::covered_ranges`], and pass each start to
+//! [`generate_range`].
+//!
+//! # Example
+//!
+//! ```no_run
+//! use glyphore_core::{FontFace, generate_range};
+//!
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     let bytes = std::fs::read("NotoSans-Regular.ttf")?;
+//!     let face = FontFace::parse(&bytes)?;
+//!
+//!     for start in face.covered_ranges() {
+//!         let pbf = generate_range(&face, start)?;
+//!         std::fs::write(format!("{start}-{}.pbf", start + 255), pbf)?;
+//!     }
+//!     Ok(())
+//! }
+//! ```
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -42,6 +61,12 @@ pub struct FontFace {
 
 impl FontFace {
 	/// Parses the first face in a TTF, OTF, or font collection.
+	///
+	/// # Errors
+	///
+	/// Returns [`Error::InvalidFont`] when `bytes` cannot be parsed as a font,
+	/// or [`Error::UnsupportedFont`] when the face uses an unsupported feature
+	/// or lacks a required family or style name.
 	pub fn parse(bytes: &[u8]) -> Result<FontFace, Error> {
 		let face = ttf_parser::Face::parse(bytes, 0)
 			.map_err(|error| Error::InvalidFont(error.to_string()))?;
@@ -137,6 +162,10 @@ impl FontFace {
 ///
 /// A range with no mapped glyphs still produces a valid PBF containing the
 /// font stack name and range string.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidRangeStart`] when `start` is not a multiple of 256.
 pub fn generate_range(face: &FontFace, start: u32) -> Result<Vec<u8>, Error> {
 	if !start.is_multiple_of(256) {
 		return Err(Error::InvalidRangeStart(start));

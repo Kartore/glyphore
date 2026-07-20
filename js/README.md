@@ -1,7 +1,7 @@
 # @kartore/glyphore
 
-Generate MapLibre glyph SDF PBF ranges from TTF and OTF fonts. Browser and
-Node entry points use the same Rust core as the native pipeline.
+Generate MapLibre glyph SDF PBF ranges from TTF and OTF fonts in browsers,
+Node, and the command line.
 
 ## Install
 
@@ -25,6 +25,11 @@ name are preserved. Only ranges containing mapped glyphs are written;
 Use `--skip-invalid` to report and skip fonts that cannot be parsed. Without
 it, an invalid font stops the build before any output is created.
 
+Use each generated directory with a single-entry `text-font` array, such as
+`["Noto Sans Regular"]`. MapLibre joins multiple `text-font` entries with
+commas when expanding `{fontstack}`; glyphore does not generate those combined
+directories.
+
 ## Browser
 
 ```js
@@ -45,9 +50,17 @@ try {
 }
 ```
 
-`info.fontstackName` is the value to use in MapLibre's `text-font` and in the
-glyph URL's `{fontstack}` placeholder. `info.coveredRanges` lists the range
-starts that contain glyphs.
+Use a one-element array when configuring a MapLibre symbol layer:
+
+```js
+// After the style has loaded:
+map.setLayoutProperty("place-label", "text-font", [info.fontstackName]);
+```
+
+With that single entry, MapLibre substitutes `info.fontstackName` for the glyph
+URL's `{fontstack}` placeholder. `info.coveredRanges` lists the sorted range
+starts that contain glyphs. `generateRange` accepts any range start that is a
+multiple of 256; the values in `info.coveredRanges` are ready to pass directly.
 
 ## Node
 
