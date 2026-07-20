@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 
-const cliPath = fileURLToPath(new URL("../cli.mjs", import.meta.url));
+const cliPath = fileURLToPath(new URL("../dist/cli.js", import.meta.url));
 const repositoryRoot = fileURLToPath(new URL("../..", import.meta.url));
 const fixtureFont = fileURLToPath(
 	new URL(
@@ -87,7 +87,7 @@ test("CLI", async (context) => {
 		for (const [name, runCli] of [
 			["node", runNodeCli],
 			["rust", runRustCli],
-		]) {
+		] as const) {
 			const failedOutput = join(temporaryRoot, `${name}-invalid-output`);
 			const failed = runCli(["build", input, "-o", failedOutput]);
 			assert.equal(failed.status, 1);
@@ -120,7 +120,7 @@ test("CLI", async (context) => {
 		for (const [name, runCli] of [
 			["node", runNodeCli],
 			["rust", runRustCli],
-		]) {
+		] as const) {
 			const output = join(temporaryRoot, `${name}-duplicate-output`);
 			const result = runCli(["build", input, "-o", output]);
 			assert.equal(result.status, 1);
@@ -133,13 +133,13 @@ test("CLI", async (context) => {
 	});
 });
 
-function runNodeCli(arguments_) {
+function runNodeCli(arguments_: readonly string[]) {
 	return spawnSync(process.execPath, [cliPath, ...arguments_], {
 		encoding: "utf8",
 	});
 }
 
-function runRustCli(arguments_) {
+function runRustCli(arguments_: readonly string[]) {
 	return spawnSync(
 		"cargo",
 		["run", "--quiet", "--package", "glyphore", "--", ...arguments_],
@@ -150,7 +150,10 @@ function runRustCli(arguments_) {
 	);
 }
 
-async function assertMatchingOutputs(nodeOutput, rustOutput) {
+async function assertMatchingOutputs(
+	nodeOutput: string,
+	rustOutput: string,
+): Promise<void> {
 	assert.deepEqual(await readdir(nodeOutput), [fontstackName]);
 	assert.deepEqual(await readdir(rustOutput), [fontstackName]);
 	const nodeFontDirectory = join(nodeOutput, fontstackName);

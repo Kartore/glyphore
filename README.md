@@ -78,33 +78,25 @@ font's license before redistributing them.
 ## Browser
 
 ```ts
-import {
-	freeFont,
-	generateRange,
-	init,
-	parseFont,
-} from "@kartore/glyphore";
+import { generateRange, loadFont } from "@kartore/glyphore";
 
-await init();
-const { handle, info } = parseFont(fontBytes);
-try {
+{
+	using font = await loadFont(fontBytes);
 	// U+0000–U+00FF. Range starts must be multiples of 256.
-	const pbf = generateRange(handle, 0);
-	console.log(info.fontstackName, pbf);
-} finally {
-	// Parsed fonts remain in WebAssembly memory until explicitly released.
-	freeFont(handle);
+	const pbf = generateRange(font, 0);
+	console.log(font.info.fontstackName, pbf);
 }
 ```
 
-Use `[info.fontstackName]` as a symbol layer's `text-font` array. With that
+Use `[font.info.fontstackName]` as a symbol layer's `text-font` array. With that
 single entry, MapLibre substitutes the same name for the glyph URL's
-`{fontstack}` placeholder. `info.coveredRanges` contains the sorted range
+`{fontstack}` placeholder. `font.info.coveredRanges` contains the sorted range
 starts that have at least one glyph.
 
-For Node, import the same API from `@kartore/glyphore/node`; its `init()` reads
-the bundled WebAssembly file from the package. See [the package README](js/README.md)
-for complete browser and Node examples.
+The `using` declaration releases the loaded font when its scope exits. For
+Node, import `loadFont` and `generateRange` from `@kartore/glyphore/node`; it
+reads the bundled WebAssembly file automatically. See
+[the package README](js/README.md) for complete browser and Node examples.
 
 ## Rust
 
@@ -131,8 +123,9 @@ core usage.
 cargo fmt --check
 cargo clippy --workspace -- -D warnings
 cargo test --workspace
-pnpm -C js build
-pnpm -C js test
+pnpm build
+pnpm typecheck
+pnpm test
 ```
 
 ## License

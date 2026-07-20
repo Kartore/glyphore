@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"exactOptionalPropertyTypes": true,
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"noEmit": true,
+		"strict": true,
+		"target": "ES2022",
+		"types": []
+	},
+	"files": ["index.ts"]
+}

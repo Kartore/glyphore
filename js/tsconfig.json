@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"exactOptionalPropertyTypes": true,
+		"forceConsistentCasingInFileNames": true,
+		"lib": ["ES2022", "ESNext.Disposable", "DOM", "DOM.Iterable"],
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"noEmitOnError": true,
+		"noUncheckedIndexedAccess": true,
+		"outDir": "dist",
+		"rootDir": "src",
+		"skipLibCheck": false,
+		"strict": true,
+		"target": "ES2022",
+		"types": ["node"],
+		"verbatimModuleSyntax": true
+	},
+	"include": ["src/**/*.ts"]
+}

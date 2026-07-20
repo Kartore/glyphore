@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import {
+	chmodSync,
 	mkdirSync,
 	readFileSync,
 	readdirSync,
@@ -36,6 +37,7 @@ if (installedVersion !== `wasm-bindgen ${wasmBindgenVersion}`) {
 capture("wasm-opt", ["--version"]);
 
 const packageOutput = resolve(packageDirectory, "pkg");
+const typescriptOutput = resolve(packageDirectory, "dist");
 const inputWasm = resolve(
 	repositoryRoot,
 	"target/wasm32-unknown-unknown/release/glyphore_wasm.wasm",
@@ -78,6 +80,10 @@ run("wasm-opt", [
 	optimizedWasm,
 ]);
 renameSync(optimizedWasm, outputWasm);
+
+rmSync(typescriptOutput, { recursive: true, force: true });
+run("tsc", ["--project", resolve(packageDirectory, "tsconfig.json")]);
+chmodSync(resolve(typescriptOutput, "cli.js"), 0o755);
 
 console.log(
 	`built ${wasmFiles[0]} (${statSync(outputWasm).size.toLocaleString("en-US")} bytes)`,

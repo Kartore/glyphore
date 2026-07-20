@@ -1,0 +1,18 @@
+{
+	"name": "glyphore-workspace",
+	"private": true,
+	"scripts": {
+		"build": "pnpm --filter @kartore/glyphore build",
+		"typecheck": "pnpm --filter @kartore/glyphore typecheck",
+		"test": "pnpm --filter @kartore/glyphore test",
+		"bench": "pnpm --filter @kartore/glyphore bench"
+	},
+	"packageManager": "pnpm@11.13.1",
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": "26.5.0",
+			"onFail": "download"
+		}
+	}
+}

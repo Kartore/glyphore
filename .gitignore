@@ -1,6 +1,7 @@
 /target
 node_modules/
 js/pkg/
+js/dist/
 /spike-out*
 /spike/reference/
 .codex/

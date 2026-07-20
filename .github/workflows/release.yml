@@ -81,20 +81,14 @@ jobs:
           echo "$PWD/binaryen-version_131/bin" >> "$GITHUB_PATH"
 
       - uses: pnpm/setup@5d160c5bc68a09337ad0d5654e237e03253b5879 # v1.0.0
-        with:
-          package-json-file: "js/package.json"
-          install: false
 
-      - name: Install pnpm dependencies
-        working-directory: js
-        run: pnpm install
-
-      - name: Build wasm package
-        working-directory: js
+      - name: Build npm package
         run: pnpm build
 
+      - name: Type-check npm package
+        run: pnpm typecheck
+
       - name: Test npm package
-        working-directory: js
         run: pnpm test
 
       - name: Publish to npm

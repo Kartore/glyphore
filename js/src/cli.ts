@@ -2,9 +2,17 @@
 
 import { readFile, readdir, stat, writeFile, mkdir } from "node:fs/promises";
 import { extname, join } from "node:path";
-import { parseArgs } from "node:util";
+import {
+	parseArgs,
+	type ParseArgsOptionsConfig,
+} from "node:util";
 
-import { freeFont, generateRange, init, parseFont } from "./node.mjs";
+import {
+	generateRange,
+	loadFont,
+	type FontInfo,
+	type GlyphFont,
+} from "./node.js";
 
 const USAGE = [
 	"Usage:",
@@ -13,6 +21,11 @@ const USAGE = [
 ].join("\n");
 
 class UsageError extends Error {}
+
+interface ParsedFont {
+	fileName: string;
+	font: GlyphFont;
+}
 
 try {
 	await main();
@@ -24,7 +37,7 @@ try {
 	process.exitCode = 1;
 }
 
-async function main() {
+async function main(): Promise<void> {
 	const [command, ...arguments_] = process.argv.slice(2);
 	switch (command) {
 		case "build":
@@ -42,40 +55,43 @@ async function main() {
 	}
 }
 
-async function build(arguments_) {
+async function build(arguments_: readonly string[]): Promise<void> {
 	const { positionals, values } = parseArguments(arguments_, {
 		output: { type: "string", short: "o" },
 		"skip-invalid": { type: "boolean" },
 		help: { type: "boolean", short: "h" },
 	});
-	if (values.help) {
+	if (values.help === true) {
 		console.log(USAGE);
 		return;
 	}
 	if (positionals.length !== 1) {
 		throw new UsageError("expected one fonts directory");
 	}
-	if (values.output === undefined) {
+	const inputDirectory = positionals[0];
+	if (inputDirectory === undefined) {
+		throw new UsageError("expected one fonts directory");
+	}
+	const outputDirectory = values.output;
+	if (typeof outputDirectory !== "string") {
 		throw new UsageError("the `-o, --output <out-dir>` option is required");
 	}
 
-	const inputDirectory = positionals[0];
 	await requireInputDirectory(inputDirectory);
 	const files = await listFontFiles(inputDirectory);
-	await init();
 	const fonts = await parseFonts(
 		inputDirectory,
 		files,
-		values["skip-invalid"] ?? false,
+		values["skip-invalid"] === true,
 	);
 
 	try {
-		await mkdir(values.output, { recursive: true });
-		for (const font of fonts) {
-			const fontDirectory = join(values.output, font.info.fontstackName);
+		await mkdir(outputDirectory, { recursive: true });
+		for (const { font } of fonts) {
+			const fontDirectory = join(outputDirectory, font.info.fontstackName);
 			await mkdir(fontDirectory, { recursive: true });
 			for (const start of font.info.coveredRanges) {
-				const bytes = generateRange(font.handle, start);
+				const bytes = generateRange(font, start);
 				await writeFile(
 					join(fontDirectory, `${start}-${start + 255}.pbf`),
 					bytes,
@@ -86,47 +102,45 @@ async function build(arguments_) {
 			);
 		}
 	} finally {
-		freeFonts(fonts);
+		disposeFonts(fonts);
 	}
 }
 
-async function info(arguments_) {
+async function info(arguments_: readonly string[]): Promise<void> {
 	const { positionals, values } = parseArguments(arguments_, {
 		json: { type: "boolean" },
 		help: { type: "boolean", short: "h" },
 	});
-	if (values.help) {
+	if (values.help === true) {
 		console.log(USAGE);
 		return;
 	}
 	if (positionals.length !== 1) {
 		throw new UsageError("expected one font file");
 	}
-
 	const fontFile = positionals[0];
-	const bytes = await readFile(fontFile).catch((error) => {
-		throw new Error(`failed to read ${fontFile}: ${errorMessage(error)}`);
-	});
-	await init();
-	let parsed;
-	try {
-		parsed = parseFont(bytes);
-	} catch (error) {
-		throw new Error(`failed to parse \`${fontFile}\`: ${errorMessage(error)}`);
+	if (fontFile === undefined) {
+		throw new UsageError("expected one font file");
 	}
 
-	try {
-		if (values.json) {
-			console.log(JSON.stringify(parsed.info));
-		} else {
-			printFontInfo(parsed.info);
-		}
-	} finally {
-		freeFont(parsed.handle);
+	const bytes = await readFile(fontFile).catch((error: unknown) => {
+		throw new Error(`failed to read ${fontFile}: ${errorMessage(error)}`);
+	});
+	using font = await loadFont(bytes).catch((error: unknown) => {
+		throw new Error(`failed to parse \`${fontFile}\`: ${errorMessage(error)}`);
+	});
+
+	if (values.json === true) {
+		console.log(JSON.stringify(font.info));
+	} else {
+		printFontInfo(font.info);
 	}
 }
 
-function parseArguments(arguments_, options) {
+function parseArguments(
+	arguments_: readonly string[],
+	options: ParseArgsOptionsConfig,
+) {
 	try {
 		return parseArgs({
 			args: arguments_,
@@ -139,7 +153,7 @@ function parseArguments(arguments_, options) {
 	}
 }
 
-async function requireInputDirectory(directory) {
+async function requireInputDirectory(directory: string): Promise<void> {
 	let metadata;
 	try {
 		metadata = await stat(directory);
@@ -151,7 +165,7 @@ async function requireInputDirectory(directory) {
 	}
 }
 
-async function listFontFiles(directory) {
+async function listFontFiles(directory: string): Promise<string[]> {
 	const entries = (await readdir(directory, { withFileTypes: true }))
 		.filter(
 			(entry) =>
@@ -167,18 +181,22 @@ async function listFontFiles(directory) {
 	return entries.map((entry) => entry.name);
 }
 
-async function parseFonts(directory, files, skipInvalid) {
-	const fontstacks = new Map();
-	const fonts = [];
+async function parseFonts(
+	directory: string,
+	files: readonly string[],
+	skipInvalid: boolean,
+): Promise<ParsedFont[]> {
+	const fontstacks = new Map<string, string>();
+	const fonts: ParsedFont[] = [];
 	try {
 		for (const fileName of files) {
 			const path = join(directory, fileName);
-			const bytes = await readFile(path).catch((error) => {
+			const bytes = await readFile(path).catch((error: unknown) => {
 				throw new Error(`failed to read ${path}: ${errorMessage(error)}`);
 			});
-			let parsed;
+			let font: GlyphFont;
 			try {
-				parsed = parseFont(bytes);
+				font = await loadFont(bytes);
 			} catch (error) {
 				const message = errorMessage(error);
 				if (skipInvalid) {
@@ -188,33 +206,35 @@ async function parseFonts(directory, files, skipInvalid) {
 				throw new Error(`failed to parse \`${fileName}\`: ${message}`);
 			}
 
-			fonts.push({ fileName, ...parsed });
-			const existing = fontstacks.get(parsed.info.fontstackName);
+			const fontstackName = font.info.fontstackName;
+			const existing = fontstacks.get(fontstackName);
 			if (existing !== undefined) {
+				font[Symbol.dispose]();
 				throw new Error(
-					`fontstack collision \`${parsed.info.fontstackName}\` between ` +
+					`fontstack collision \`${fontstackName}\` between ` +
 						`\`${existing}\` and \`${fileName}\``,
 				);
 			}
-			fontstacks.set(parsed.info.fontstackName, fileName);
+			fontstacks.set(fontstackName, fileName);
+			fonts.push({ fileName, font });
 		}
 		if (fonts.length === 0) {
 			throw new Error("no valid font files found");
 		}
 		return fonts;
 	} catch (error) {
-		freeFonts(fonts);
+		disposeFonts(fonts);
 		throw error;
 	}
 }
 
-function freeFonts(fonts) {
-	for (const font of fonts) {
-		freeFont(font.handle);
+function disposeFonts(fonts: readonly ParsedFont[]): void {
+	for (const { font } of fonts) {
+		font[Symbol.dispose]();
 	}
 }
 
-function printFontInfo(font) {
+function printFontInfo(font: FontInfo): void {
 	console.log(`fontstack: ${font.fontstackName}`);
 	console.log(`family: ${font.familyName}`);
 	console.log(`style: ${font.styleName}`);
@@ -222,6 +242,6 @@ function printFontInfo(font) {
 	console.log(`covered ranges: ${font.coveredRanges.length}`);
 }
 
-function errorMessage(error) {
+function errorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
 }

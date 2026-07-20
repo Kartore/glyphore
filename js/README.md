@@ -32,62 +32,45 @@ directories.
 
 ## Browser
 
-```js
-import {
-	freeFont,
-	generateRange,
-	init,
-	parseFont,
-} from "@kartore/glyphore";
+```ts
+import { generateRange, loadFont } from "@kartore/glyphore";
 
-await init();
-const { handle, info } = parseFont(fontBytes);
-try {
-	const pbf = generateRange(handle, 0);
-	console.log(info.fontstackName, pbf);
-} finally {
-	freeFont(handle);
+{
+	using font = await loadFont(fontBytes);
+	const pbf = generateRange(font, 0);
+	console.log(font.info.fontstackName, pbf);
+	map.setLayoutProperty("place-label", "text-font", [
+		font.info.fontstackName,
+	]);
 }
 ```
 
-Use a one-element array when configuring a MapLibre symbol layer:
-
-```js
-// After the style has loaded:
-map.setLayoutProperty("place-label", "text-font", [info.fontstackName]);
-```
-
-With that single entry, MapLibre substitutes `info.fontstackName` for the glyph
-URL's `{fontstack}` placeholder. `info.coveredRanges` lists the sorted range
-starts that contain glyphs. `generateRange` accepts any range start that is a
-multiple of 256; the values in `info.coveredRanges` are ready to pass directly.
+With that single entry, MapLibre substitutes `font.info.fontstackName` for the
+glyph URL's `{fontstack}` placeholder. `font.info.coveredRanges` lists the
+sorted range starts that contain glyphs. `generateRange(font, start)` accepts
+any range start that is a multiple of 256; the values in
+`font.info.coveredRanges` are ready to pass directly.
 
 ## Node
 
-```js
+```ts
 import { readFile } from "node:fs/promises";
-import {
-	freeFont,
-	generateRange,
-	init,
-	parseFont,
-} from "@kartore/glyphore/node";
+import { generateRange, loadFont } from "@kartore/glyphore/node";
 
-await init();
 const bytes = await readFile("NotoSans-Regular.ttf");
-const { handle } = parseFont(bytes);
-try {
-	const pbf = generateRange(handle, 8192);
-} finally {
-	freeFont(handle);
+
+{
+	using font = await loadFont(bytes);
+	const pbf = generateRange(font, 8192);
 }
 ```
 
-`parseFont` keeps the parsed font in WebAssembly memory. Always call
-`freeFont` when the handle is no longer needed; otherwise the font remains
-allocated until the WebAssembly instance is discarded. A second `freeFont`
-call for the same handle is harmless, while generating with a released handle
-throws an `Error`.
+`loadFont` initializes WebAssembly automatically and keeps the parsed font in
+its memory. The returned resource implements the standard `Disposable`
+protocol, so `using` releases it when control leaves the block, including on
+an exception or early return. `generateRange(font, start)` is a standalone
+function. A finalizer provides fallback cleanup if `using` is omitted, but its
+timing is not guaranteed.
 
 Generated PBF files contain data derived from the source font. Check the
 font's license before redistributing them.
@@ -100,11 +83,13 @@ wasm-bindgen CLI, Binaryen's `wasm-opt`, Node, and pnpm:
 ```sh
 rustup target add wasm32-unknown-unknown
 cargo install wasm-bindgen-cli --version 0.2.125 --locked
-pnpm -C js build
-pnpm -C js test
-pnpm -C js bench
+pnpm build
+pnpm typecheck
+pnpm test
+pnpm bench
 ```
 
 Set `GLYPHORE_BENCH_FONT` to a CJK font path to include it in the benchmark.
 The build stops if `wasm-bindgen` has a different version or `wasm-opt` is not
-available. The generated `pkg/` directory is intentionally not committed.
+available. The generated `pkg/` and `dist/` directories are intentionally not
+committed.
